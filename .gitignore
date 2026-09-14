@@ -1,0 +1,16 @@
+# build output
+build/
+dist/
+
+# MSBuild / VS
+*.user
+*.suo
+.vs/
+*.aps
+*.VC.db
+*.VC.opendb
+
+# signing artifacts (never commit private keys or test certs)
+*.pfx
+*.cer
+*.cat

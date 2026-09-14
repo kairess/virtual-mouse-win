@@ -1,0 +1,47 @@
+﻿//---------------------------------------------------------------------------
+// vmouse.rc
+//
+// Self-contained VERSIONINFO. The WDK samples pull this in from ntverp.h +
+// common.ver, but spelling it out here keeps the project buildable without
+// depending on the WDK's internal version headers.
+//---------------------------------------------------------------------------
+
+#include <windows.h>
+
+#define VMOUSE_VERSION_MAJOR    1
+#define VMOUSE_VERSION_MINOR    0
+#define VMOUSE_VERSION_BUILD    0
+#define VMOUSE_VERSION_REVISION 0
+#define VMOUSE_VERSION_STR      "1.0.0.0\0"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    VMOUSE_VERSION_MAJOR,VMOUSE_VERSION_MINOR,VMOUSE_VERSION_BUILD,VMOUSE_VERSION_REVISION
+ PRODUCTVERSION VMOUSE_VERSION_MAJOR,VMOUSE_VERSION_MINOR,VMOUSE_VERSION_BUILD,VMOUSE_VERSION_REVISION
+ FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+ FILEFLAGS      VS_FF_DEBUG
+#else
+ FILEFLAGS      0x0L
+#endif
+ FILEOS         VOS_NT_WINDOWS32
+ FILETYPE       VFT_DRV
+ FILESUBTYPE    VFT2_DRV_SYSTEM
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"            // U.S. English, Unicode
+        BEGIN
+            VALUE "CompanyName",      "virtual-mouse\0"
+            VALUE "FileDescription",  "Virtual HID Mouse Driver\0"
+            VALUE "FileVersion",      VMOUSE_VERSION_STR
+            VALUE "InternalName",     "vmouse.sys\0"
+            VALUE "OriginalFilename", "vmouse.sys\0"
+            VALUE "ProductName",      "virtual-mouse\0"
+            VALUE "ProductVersion",   VMOUSE_VERSION_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

@@ -1,0 +1,102 @@
+;/*++
+;
+; vmouse.inf
+;
+; Installs the virtual HID mouse as a root-enumerated (software) device
+; with hardware ID root\virtualmouse.
+;
+; NOTE: this file is intentionally pure ASCII. SetupAPI parses an INF without
+; a BOM using the system ANSI codepage, so non-ASCII comments would be
+; mis-decoded. The Korean design notes live in ../docs/ instead.
+;
+; Stack layout:
+;
+;   hidclass.sys      HID class driver
+;     mshidkmdf.sys   HID-to-KMDF pass-through (pulled in via MsHidKmdf.inf)
+;       vmouse.sys    this driver, installed as a LOWER FILTER
+;
+; mshidkmdf.sys is the registered HID minidriver; it forwards hidclass's
+; IOCTL_HID_* requests down as IRP_MJ_INTERNAL_DEVICE_CONTROL, where vmouse.sys
+; answers them with the mouse report descriptor. hidclass then sees a top-level
+; collection of Generic Desktop (0x01) / Mouse (0x02) and binds mouclass.sys,
+; which is what makes the device show up in GetRawInputDeviceList().
+;
+; MsHidKmdf.inf is inbox starting with Windows build 22000, hence the
+; 10.0...22000 decoration on the Models section.
+;
+; Install with: tools\vmousectl install (see scripts\Install-Driver.ps1)
+;
+;--*/
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = HIDClass
+ClassGuid   = {745a17a0-74d3-11d0-b6fe-00a0c90f57da}
+Provider    = %ProviderString%
+DriverVer   = 01/01/2024,1.0.0.0
+CatalogFile = vmouse.cat
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskDesc%,,,
+
+[SourceDisksFiles]
+vmouse.sys = 1
+
+; ================= Device section =========================
+
+[Manufacturer]
+%ManufacturerString% = Standard, NT$ARCH$.10.0...22000
+
+[Standard.NT$ARCH$.10.0...22000]
+%DeviceDesc% = vmouse, root\virtualmouse
+
+[vmouse.NT]
+CopyFiles = Drivers_Dir
+Include   = MsHidKmdf.inf
+Needs     = MsHidKmdf.NT
+
+[vmouse.NT.HW]
+Include = MsHidKmdf.inf
+Needs   = MsHidKmdf.NT.HW
+
+[vmouse.NT.Services]
+Include    = MsHidKmdf.inf
+Needs      = MsHidKmdf.NT.Services
+AddService = vmouse, 0, vmouse_Service_Inst
+
+[vmouse.NT.Filters]
+AddFilter = vmouse,, vmouse_Filter_Install
+
+[vmouse_Filter_Install]
+FilterPosition = Lower
+
+[vmouse_Service_Inst]
+DisplayName   = %ServiceDesc%
+ServiceType   = 1                  ; SERVICE_KERNEL_DRIVER
+StartType     = 3                  ; SERVICE_DEMAND_START
+ErrorControl  = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary = %13%\vmouse.sys
+
+[vmouse.NT.Wdf]
+KmdfService = vmouse, vmouse_wdfsect
+
+[vmouse_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+; ================= copy files =========================
+
+[Drivers_Dir]
+vmouse.sys
+
+; ------------------------------------------------------------------------- ;
+
+[Strings]
+ProviderString     = "virtual-mouse"
+ManufacturerString = "virtual-mouse"
+DeviceDesc         = "Virtual HID Mouse"
+ServiceDesc        = "Virtual HID Mouse Driver"
+DiskDesc           = "Virtual HID Mouse Installation Disk"
